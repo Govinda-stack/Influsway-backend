@@ -1,38 +1,17 @@
 const moment = require("moment");
 const axios = require('axios');
 // const BASE_URL = "http://localhost:8000"
-const BASE_URL = "http://127.0.0.1:8000"
 // const BASE_URL = "https://new.instafluencer.com"
-
-// Functions Section
+const BASE_URL = "https://influsway.com"
+// // Functions Section
 // module.exports.getAuth = async (token) => {
-//     console.log('from get auth',token)
 //     const res = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
 //         headers:{
 //             "Authorization": `Bearer ${token}`
 //         }
 //     })
-//     console.log('from get auth',res.data)
 //     return res;
 // }
-
-// module.exports.getAuth = async (token) => {
-//     console.log('From getAuth, Token:', token);  // Debugging token
-//     try {
-//         const res = await axios.get(`${BASE_URL}/api/v1/users/profile`, {
-//             headers: {
-//                 "Authorization": `Bearer ${token}`,
-//             },
-//         });
-
-//         console.log('Response from getAuth:');  // Debugging the response
-
-//         return res;
-//     } catch (error) {
-//         console.log('Error in getAuth:', error.message);
-//         throw new Error('Authentication failed');
-//     }
-// };
 
 module.exports.getAuth = async (token) => {
     if (token.startsWith('Bearer ')) {
@@ -50,8 +29,6 @@ module.exports.getAuth = async (token) => {
         throw new Error('Authentication failed');
     }
 };
-
-
 
 module.exports.getCurrenUtcTime = (...date) => {
     if ( date.length ){
