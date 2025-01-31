@@ -787,10 +787,10 @@ app.post('/chat-app/send-file', upload.array('file'), async (req, res) => {
 });
 
   
-    // app.get("/chat-app", (req, res) => {
-    //     console.log('Received request for /chat-app');
-    //     return res.send("<h4>Welcome this is the live chat app feel free to destroy it </h4>");
-    // });
+    app.get("/chat-app", (req, res) => {
+        console.log('Received request for /chat-app');
+        return res.send("<h4>Welcome this is the live chat app feel free to destroy it </h4>");
+    });
 
     app.post("/chat-app/get-chat", async (req, res) => {
         try {
