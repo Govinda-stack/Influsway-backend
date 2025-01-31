@@ -511,76 +511,112 @@ app.get('/uploads/:originalName', async (req, res) => {
         }
     });
 
-    app.post("/chat-app/get-chat", async (req, res) => {
-        console.log('Received request to get chat. Request body:', req.body);
+    // app.post("/chat-app/get-chat", async (req, res) => {
+    //     console.log('Received request to get chat. Request body:', req.body);
     
+    //     try {
+    //         const token = req.headers.authorization;
+    //         console.log('Authorization token:', token);
+    //         console.log('}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}', req.body)
+    //         if (!token) {
+    //             console.log('Error: Authorization token is missing');
+    //             return res.status(400).json({ error: 'Authorization token is missing' });
+    //         }
+    
+    //         let user1, user2;
+    //         if (token === "xxxx") {
+    //             // Ensure user1 and user2 are numbers here
+    //             [user1, user2] = [Number(req.body.user1), Number(req.body.user2)];
+    //         } else {
+    //             const { data } = await functions.getAuth(token);
+    //             if (data && data.data && data.data.id) {
+    //                 // Ensure user1 and user2 are numbers
+    //                 [user1, user2] = [Number(data.data.id), Number(req.body.user2)];
+    //             } else {
+    //                 console.log('Error with user data from getAuth:', data);
+    //                 return res.status(401).json({ error: 'Invalid token or user data not found' });
+    //             }
+    //         }
+    
+    //         if (!user1 || !user2) {
+    //             console.log('Error: Missing user1 or user2');
+    //             return res.status(400).json({ error: 'Bad request. Please send both user1 and user2.' });
+    //         }
+    
+    //         console.log('Fetching chat between user1:', user1, 'and user2:', user2);
+    
+    //         const queryText = `
+    //             SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2
+    //             FROM messages
+    //             INNER JOIN chats ON chats.id = messages.chat_id
+    //             WHERE ((chats.user1 = ? AND chats.user2 = ?) OR (chats.user1 = ? AND chats.user2 = ?))
+    //             ORDER BY messages.date`;
+    
+    //         query(queryText, [user1, user2, user2, user1], async (err, result) => {
+    //             if (err) {
+    //                 console.error('Error in query:', err.message);
+    //                 return res.status(500).json({ error: 'Database query error', details: err.message });
+    //             }
+    
+    //             if (result.length) {
+    //                 // Ensure userNumber is always a number
+    //                 let mappedMessage = result.map((message) => {
+    //                     const user1Number = Number(message.user1); // Ensure user1 is a number
+    //                     const user2Number = Number(message.user2); // Ensure user2 is a number
+    //                     if (user1 === user1Number) {
+    //                         return { userNumber: 1, ...message };
+    //                     } else {
+    //                         return { userNumber: 2, ...message };
+    //                     }
+    //                 });
+    
+    //                 console.log("Mapped Messages:", mappedMessage);
+    //                 return res.json(mappedMessage); // Send mapped response
+    //             } else {
+    //                 console.log('No existing chat found, creating new chat');
+    //                 // Create new chat logic if needed...
+    //             }
+    //         });
+    //     } catch (error) {
+    //         console.error('Error in post request:', error.message);
+    //         return res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    //     }
+    // });
+
+      app.post("/chat-app/get-chat", async (req, res) => {
         try {
             const token = req.headers.authorization;
-            console.log('Authorization token:', token);
-            console.log('}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}', req.body)
-            if (!token) {
-                console.log('Error: Authorization token is missing');
-                return res.status(400).json({ error: 'Authorization token is missing' });
+            if (token === "xxxx"){
+                var [user1, user2] = [ req.body.user1, req.body.user2]
+            }else{
+                const { data } = await functions.getAuth(token)//authorize the user
+                var [user1, user2] = [ data.data.id, req.body.user2]
             }
-    
-            let user1, user2;
-            if (token === "xxxx") {
-                // Ensure user1 and user2 are numbers here
-                [user1, user2] = [Number(req.body.user1), Number(req.body.user2)];
-            } else {
-                const { data } = await functions.getAuth(token);
-                if (data && data.data && data.data.id) {
-                    // Ensure user1 and user2 are numbers
-                    [user1, user2] = [Number(data.data.id), Number(req.body.user2)];
-                } else {
-                    console.log('Error with user data from getAuth:', data);
-                    return res.status(401).json({ error: 'Invalid token or user data not found' });
-                }
+            if (!user1 || !user2){
+                return res.status(400).json("bad request please send user1 and user2")
             }
-    
-            if (!user1 || !user2) {
-                console.log('Error: Missing user1 or user2');
-                return res.status(400).json({ error: 'Bad request. Please send both user1 and user2.' });
-            }
-    
-            console.log('Fetching chat between user1:', user1, 'and user2:', user2);
-    
-            const queryText = `
-                SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2
-                FROM messages
-                INNER JOIN chats ON chats.id = messages.chat_id
-                WHERE ((chats.user1 = ? AND chats.user2 = ?) OR (chats.user1 = ? AND chats.user2 = ?))
-                ORDER BY messages.date`;
-    
-            query(queryText, [user1, user2, user2, user1], async (err, result) => {
-                if (err) {
-                    console.error('Error in query:', err.message);
-                    return res.status(500).json({ error: 'Database query error', details: err.message });
+            //get the chat info 
+            query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2  FROM messages INNER JOIN chats on chats.id = messages.chat_id WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1} ))  Order By messages.date`, async (err, result) => {
+                if (err) return res.status(500).json(err.message);
+                if( result.length ){//if there is a chat
+                    if (user1 == result[0].user1){//if user 1 asked for the chat 
+                        result[0] = { userNumber: 1, ...result[0] }
+                    }else{//if user 2 asked for the chat
+                        result[0] = { userNumber: 2, ...result[0] }
+                    }
+                    return res.json(result);
+                }else{//if there is no chat yet
+                    //create chat in the database
+                    let created_at = moment().utc().format('YYYY-MM-DD HH:mm')
+                    const chat = await query(`insert into chats (user1, user2, last_message, created_at, updated_at) Values (${user1}, ${user2}, ' Chat Created','${created_at}', '${created_at}')`)
+                    const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 0Chat Created")`)
+                    //user1 is the one who started the chat and {userNumber: int} frontend must add it to 'socket auth handshake' and push it at the beginning of each message 
+                    return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 0Chat Just Created", date: created_at }])
                 }
-    
-                if (result.length) {
-                    // Ensure userNumber is always a number
-                    let mappedMessage = result.map((message) => {
-                        const user1Number = Number(message.user1); // Ensure user1 is a number
-                        const user2Number = Number(message.user2); // Ensure user2 is a number
-                        if (user1 === user1Number) {
-                            return { userNumber: 1, ...message };
-                        } else {
-                            return { userNumber: 2, ...message };
-                        }
-                    });
-    
-                    console.log("Mapped Messages:", mappedMessage);
-                    return res.json(mappedMessage); // Send mapped response
-                } else {
-                    console.log('No existing chat found, creating new chat');
-                    // Create new chat logic if needed...
-                }
-            });
+            })
         } catch (error) {
-            console.error('Error in post request:', error.message);
-            return res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            return res.json(error.message)
         }
-    });
+    })
     
 };
