@@ -818,9 +818,9 @@ app.post('/chat-app/send-file', upload.array('file'), async (req, res) => {
                     //create chat in the database
                     let created_at = moment().utc().format('YYYY-MM-DD HH:mm')
                     const chat = await query(`insert into chats (user1, user2, last_message, created_at, updated_at) Values (${user1}, ${user2}, ' Chat Created','${created_at}', '${created_at}')`)
-                    const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 0Chat Created")`)
+                    const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 1Chat Created")`)
                     //user1 is the one who started the chat and {userNumber: int} frontend must add it to 'socket auth handshake' and push it at the beginning of each message 
-                    return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 0Chat Just Created", date: created_at }])
+                    return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 1Chat Just Created", date: created_at }])
                 }
             })
         } catch (error) {
