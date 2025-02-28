@@ -583,276 +583,43 @@ app.get('/uploads/:originalName', async (req, res) => {
     //     }
     // });
 
-//       app.post("/chat-app/get-chat", async (req, res) => {
-//         try {
-//             const token = req.headers.authorization;
-//             if (token === "xxxx"){
-//                 var [user1, user2] = [ req.body.user1, req.body.user2]
-//             }else{
-//                 const { data } = await functions.getAuth(token)//authorize the user
-//                 var [user1, user2] = [ data.data.id, req.body.user2]
-//             }
-//             if (!user1 || !user2){
-//                 return res.status(400).json("bad request please send user1 and user2")
-//             }
-//             //get the chat info 
-//             query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2  FROM messages INNER JOIN chats on chats.id = messages.chat_id WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1} ))  Order By messages.date`, async (err, result) => {
-//                 if (err) return res.status(500).json(err.message);
-//                 if( result.length ){//if there is a chat
-//                     if (user1 == result[0].user1){//if user 1 asked for the chat 
-//                         result[0] = { userNumber: 1, ...result[0] }
-//                     }else{//if user 2 asked for the chat
-//                         result[0] = { userNumber: 2, ...result[0] }
-//                     }
-//                     return res.json(result);
-//                 }else{//if there is no chat yet
-//                     //create chat in the database
-//                     let created_at = moment().utc().format('YYYY-MM-DD HH:mm')
-//                     const chat = await query(`insert into chats (user1, user2, last_message, created_at, updated_at) Values (${user1}, ${user2}, ' Chat Created','${created_at}', '${created_at}')`)
-//                     const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 0Chat Created")`)
-//                     //user1 is the one who started the chat and {userNumber: int} frontend must add it to 'socket auth handshake' and push it at the beginning of each message 
-//                     return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 0Chat Just Created", date: created_at }])
-//                 }
-//             })
-//         } catch (error) {
-//             return res.json(error.message)
-//         }
-//     })
-    
-// };
-  function getAccessToken() {
-    return new Promise((resolve, reject) => {
-      const privateKey = `-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDOXyRfkNr4PfNF\nk7dgoTBVuga262xHp4VwtmSidkhLH8ruYD6ov13DIOC0eMeWRi/qdrISc/h8ZLCF\nCwhngvxSqfpRlql+w/xzVUQAPiGFxBCY8w/scSXygbkKAkxviTnh0yeSdjQV/005\nK1bxfEmqzI6meoqLcfsZ41XZblV9yEX03FPQl1mffBqGJu0CJP0abRjexRADIbXt\nIvNJXJuBZ6K4zf8wSaF059Oa7N1cyo0F5sRtStICLrZlziU5soVEA8+B+dgbl4ad\neLdGq6iQXADjS6Mo0m5tEbpJ3+qKsitBXWB0Y4OOtfP+bY4mRn/SH8ecXBIZc1aU\nQFY5rcnPAgMBAAECggEALvLzJfCg+DezyADmh4u0INSc4XFmpViFoZJFC7bIFJsr\nghaQOriqfpFUvYn6sgPOs9MECPGsNrR7ehD7/PyOJco4weX6MnYo0R41Ra7c1n83\n3Wvyk/Jb1TNQ4ueJ9xfrfKYaixXsHJMDwP1MnsyNP9egnlwjd7zbCNUwuzIALgiA\nb1jmGtJPO2typd2hrS+zc4WvqL3edcJdNKOTFSXJ3SPv4U+qFOO8bclk+rxm4dLF\nz71EfLW79/7C1HT4flkeMjpQKPy/d5L6w4vOH5+yBPRJXmlsmUhzWYeo/qdxFvma\n90bo//crzicmIl3bpphiJcbqSExThyKC/LGJaQ7AEQKBgQD7KsYOE4aTp2BMZ7tK\nHp8PJYgo2B8+wdWH5Yb5GD3Jy/ovxhQtGXPrhWOTeyOSF220AWbgQnv+5ONqUP2N\nC33yiemp9yrUO8XX0V5jnYA2wTzMpysWJ8UBQqhYdAsHzOTzCqMQFgfFF085xJcO\nRnNdJfe2grQWShfLtIj0Gvzt0QKBgQDSV7XNWHDQcptT2BGwbAvHJeMj49WkRn6e\nOFwDqE9ZyMPBRk0kscPkHVjZG+QEe5EIz4/zPjt1NNJwUL4Rj2d/16KDyN0R3M59\n7iZ4yvApaqutTrwULpiA1aRTxqmp+luYraaxMZ5KkfbmtIllam5b6CPF8TxLdHUh\n9cebfiEFnwKBgF+P47EhXre5HBuV8B2ATxZtOkQIDsNK7pp5CwSlY4Tu9e7NV4nd\nQEyhAMTxOhRwk43EZsb2pMTTg29FB2Ntturb7Cp93y7G2zyE7XvLRigPF7np9KvG\nT99t5C1bYYMDQyzxpB8Psr8bYkphcPO+fFA5jOlFC43bfPhFZUIzLn6xAoGAHQvT\npSmjWoWZAXkC6FPjRHrs5NXfeLHrZjnuKushGgrpTVVB7eFGZcfPrxt031GY85iG\nDlb3qvXCYZQkyxP8fODwJjakoITXVvh+A4wyoeWDE4md20Ob956I9LCoWTqjT3Ab\nZritXSrO54jiuEh8OODTn8/yPZE1Y50nFUfTk40CgYEA93Ly3TXKAMLoCZ8TPOhD\nG6OcxTH1cE5epUtG8aj22wnco6lEnzXk5YH7u3zmtjOfRD1XJQxHco6Ah8v5HdOv\nGp98qO3Hyrk6mWuMG2LwrUvXQr/QZFc4pK/PQZAc5r2CwKioRs8jPEMW1w1KjwIz\nYbNm5GO55ZDUWdKsx+yKd4w=\n-----END PRIVATE KEY-----\n`;
-  
-      const clientEmail = 'firebase-adminsdk-fbsvc@influsway-6ad7f.iam.gserviceaccount.com';
-      const projectId = 'influsway-6ad7f';  // Replace with your Firebase project ID
-  
-      // Define JWT header and payload
-      const header = {
-        alg: 'RS256',
-        typ: 'JWT',
-      };
-  
-      const payload = {
-        iss: clientEmail,
-        scope: 'https://www.googleapis.com/auth/firebase.messaging',
-        aud: 'https://oauth2.googleapis.com/token',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600,  // Expiry time (1 hour)
-      };
-  
-      // Create JWT (JSON Web Token)
-      const jwt = createJWT(header, payload, privateKey);
-  
-      // Make the HTTP request to get the access token
-      const options = {
-        hostname: 'oauth2.googleapis.com',
-        path: '/token',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      };
-  
-      const data = querystring.stringify({
-        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: jwt,
-      });
-  
-      const req = https.request(options, (res) => {
-        let responseData = '';
-  
-        res.on('data', (chunk) => {
-          responseData += chunk;
-        });
-  
-        res.on('end', () => {
-          const responseJson = JSON.parse(responseData);
-          if (responseJson.access_token) {
-            resolve(responseJson.access_token);
-          } else {
-            reject(new Error('Error getting access token: ' + JSON.stringify(responseJson)));
-          }
-        });
-      });
-  
-      req.on('error', (error) => {
-        reject(error);
-      });
-  
-      req.write(data);
-      req.end();
-    });
-  }
-  
-  // Function to create JWT (you can implement this function using crypto in Node.js)
-  function createJWT(header, payload, privateKey) {
-    const base64UrlHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
-    const base64UrlPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
-    const signature = crypto.createSign('RSA-SHA256')
-      .update(base64UrlHeader + '.' + base64UrlPayload)
-      .sign(privateKey, 'base64');
-  
-    const base64UrlSignature = signature.toString('base64url');
-    return base64UrlHeader + '.' + base64UrlPayload + '.' + base64UrlSignature;
-  }
-  
-  // Function to send the notification to the FCM token
-  function sendNotification(fcmToken, title, body) {
-    getAccessToken()
-      .then((accessToken) => {
-        const notificationPayload = JSON.stringify({
-          message: {
-            token: fcmToken,
-            notification: {
-              title: title,
-              body: body,
-            },
-          },
-        });
-  
-        const options = {
-          hostname: 'fcm.googleapis.com',
-          path: '/v1/projects/influsway-6ad7f/messages:send',
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + accessToken,
-            'Content-Type': 'application/json',
-          },
-        };
-  
-        const req = https.request(options, (res) => {
-          let responseData = '';
-  
-          res.on('data', (chunk) => {
-            responseData += chunk;
-          });
-  
-          res.on('end', () => {
-            console.log('FCM response:', responseData);
-          });
-        });
-  
-        req.on('error', (error) => {
-          console.error('Error sending notification:', error);
-        });
-  
-        req.write(notificationPayload);
-        req.end();
-      })
-      .catch((error) => {
-        console.error('Error getting access token:', error);
-      });
-  }
-    const getFcmToken = (userId) => {
-        console.log(`Fetching FCM token for userId: ${userId}`); // Log when function is called
-        return new Promise((resolve, reject) => {
-            console.log(`Running query to fetch token for userId: ${userId}`); // Log before the query
-            query(`SELECT token FROM device_tokens WHERE user_id = ${userId}`, (err, result) => {
-                if (err) {
-                    console.error(`Error occurred while fetching FCM token for userId ${userId}: ${err.message}`); // Log error
-                    return reject(err);
+      app.post("/chat-app/get-chat", async (req, res) => {
+        try {
+            const token = req.headers.authorization;
+            if (token === "xxxx"){
+                var [user1, user2] = [ req.body.user1, req.body.user2]
+            }else{
+                const { data } = await functions.getAuth(token)//authorize the user
+                var [user1, user2] = [ data.data.id, req.body.user2]
+            }
+            if (!user1 || !user2){
+                return res.status(400).json("bad request please send user1 and user2")
+            }
+            //get the chat info 
+            query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2  FROM messages INNER JOIN chats on chats.id = messages.chat_id WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1} ))  Order By messages.date`, async (err, result) => {
+                if (err) return res.status(500).json(err.message);
+                if( result.length ){//if there is a chat
+                    if (user1 == result[0].user1){//if user 1 asked for the chat 
+                        result[0] = { userNumber: 1, ...result[0] }
+                    }else{//if user 2 asked for the chat
+                        result[0] = { userNumber: 2, ...result[0] }
+                    }
+                    return res.json(result);
+                }else{//if there is no chat yet
+                    //create chat in the database
+                    let created_at = moment().utc().format('YYYY-MM-DD HH:mm')
+                    const chat = await query(`insert into chats (user1, user2, last_message, created_at, updated_at) Values (${user1}, ${user2}, ' Chat Created','${created_at}', '${created_at}')`)
+                    const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 0Chat Created")`)
+                    //user1 is the one who started the chat and {userNumber: int} frontend must add it to 'socket auth handshake' and push it at the beginning of each message 
+                    return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 0Chat Just Created", date: created_at }])
                 }
-                if (result.length > 0) {
-                    console.log(`FCM token found for userId ${userId}: ${result[0].token}`); // Log if token is found
-                    resolve(result[0].token); // Assuming the FCM token is stored under 'token' field
-                } else {
-                    console.log(`No FCM token found for userId: ${userId}`); // Log if no token is found
-                    resolve(null); // No FCM token found for this user
-                }
-            });
-        });
-    };
-app.post("/chat-app/get-chat", async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        console.log(`Received authorization token: ${token}`); // Log received authorization token
-
-        const { data } = await functions.getAuth(token); // Authorize the user
-        const { user2 } = req.body;
-    
-        const user1 = data.data.id;
-        console.log(`user1: ${user1}, user2: ${user2}`); // Log user1 and user2
-    
-        if (!user1 || !user2) {
-            console.log("Bad request: Missing user1 or user2"); // Log missing users
-            return res.status(400).json("Bad request. Please send user1 and user2.");
+            })
+        } catch (error) {
+            return res.json(error.message)
         }
+    })
     
-        // Get the FCM token for user2 (the recipient)
-        const fcmToken2 = await getFcmToken(user2);
-        console.log(`FCM token for user2 (${user2}): ${fcmToken2}`); // Log the FCM token for user2
-    
-        // Get the chat info
-        console.log(`Querying for chat between user1 (${user1}) and user2 (${user2})`);
-        query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2, 
-                      users1.photo AS user1_photo, users2.photo AS user2_photo
-               FROM messages
-               INNER JOIN chats ON chats.id = messages.chat_id
-               LEFT JOIN users AS users1 ON users1.id = chats.user1
-               LEFT JOIN users AS users2 ON users2.id = chats.user2
-               WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1})) 
-               ORDER BY messages.date`, async (err, result) => {
-            if (err) {
-                console.error(`Error occurred while querying for chat: ${err.message}`); // Log query error
-                return res.status(500).json(err.message);
-            }
-
-            if (result.length) {
-                console.log("Chat found between user1 and user2"); // Log if chat exists
-                // If there is a chat, process the result
-                if (user1 == result[0].user1) {
-                    result[0] = { userNumber: 1, ...result[0] };
-                } else {
-                    result[0] = { userNumber: 2, ...result[0] };
-                }
-                
-                // Include user photos in the response
-                result[0].user1_photo = result[0].user1_photo || null;
-                result[0].user2_photo = result[0].user2_photo || null;
-
-                // If there's an FCM token for user2, send a notification
-                if (fcmToken2) {
-                    console.log("Sending notification to user2"); // Log notification sending
-                    sendNotification(fcmToken2, "New Message", `${data.data.user_name} has sent you a message`);
-                }
-
-                return res.json(result);
-            } else {
-                console.log("No chat found, creating a new one"); // Log if no chat exists
-                // If there is no chat yet, create one
-                let created_at = moment().utc().format('YYYY-MM-DD HH:mm');
-                console.log(`Creating new chat at ${created_at}`); // Log new chat creation time
-                const chat = await query(`INSERT INTO chats (user1, user2, last_message, created_at, updated_at) 
-                                          VALUES (${user1}, ${user2}, 'Chat Created', '${created_at}', '${created_at}')`);
-                const chatCreated = await query(`INSERT INTO messages (chat_id, message) 
-                                                VALUES (${chat.insertId}, "Chat Just Created")`);
-
-                // Send a notification to user2 when the chat is created
-                if (fcmToken2) {
-                    console.log("Sending chat created notification to user2"); // Log notification sending for chat creation
-                    sendNotification(fcmToken2, "Chat Created", `${data.data.user_name} has started a chat with you`);
-                }
-
-                // Include default user photos (in case they don't exist yet, fallback to null)
-                const user1Photo = await query(`SELECT photo FROM users WHERE id = ${user1}`);
-                const user2Photo = await query(`SELECT photo FROM users WHERE id = ${user2}`);
-
-                return res.json([{
-                    userNumber: 1,
-                    chat_id: chat.insertId,
-                    message: "Chat Just Created",
-                    date: created_at,
-                    user1_photo: user1Photo[0]?.photo || null,
-                    user2_photo: user2Photo[0]?.photo || null
-                }]);
-            }
-        });
-    } catch (error) {
-        console.error(`Error in /chat-app/get-chat: ${error.message}`); // Log errors in the main try block
-        return res.status(500).json(error.message);
-    }
-});
+};
 
 
 
