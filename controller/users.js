@@ -620,7 +620,149 @@ app.get('/uploads/:originalName', async (req, res) => {
 //     })
     
 // };
-
+  function getAccessToken() {
+    return new Promise((resolve, reject) => {
+      const privateKey = `-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDOXyRfkNr4PfNF\nk7dgoTBVuga262xHp4VwtmSidkhLH8ruYD6ov13DIOC0eMeWRi/qdrISc/h8ZLCF\nCwhngvxSqfpRlql+w/xzVUQAPiGFxBCY8w/scSXygbkKAkxviTnh0yeSdjQV/005\nK1bxfEmqzI6meoqLcfsZ41XZblV9yEX03FPQl1mffBqGJu0CJP0abRjexRADIbXt\nIvNJXJuBZ6K4zf8wSaF059Oa7N1cyo0F5sRtStICLrZlziU5soVEA8+B+dgbl4ad\neLdGq6iQXADjS6Mo0m5tEbpJ3+qKsitBXWB0Y4OOtfP+bY4mRn/SH8ecXBIZc1aU\nQFY5rcnPAgMBAAECggEALvLzJfCg+DezyADmh4u0INSc4XFmpViFoZJFC7bIFJsr\nghaQOriqfpFUvYn6sgPOs9MECPGsNrR7ehD7/PyOJco4weX6MnYo0R41Ra7c1n83\n3Wvyk/Jb1TNQ4ueJ9xfrfKYaixXsHJMDwP1MnsyNP9egnlwjd7zbCNUwuzIALgiA\nb1jmGtJPO2typd2hrS+zc4WvqL3edcJdNKOTFSXJ3SPv4U+qFOO8bclk+rxm4dLF\nz71EfLW79/7C1HT4flkeMjpQKPy/d5L6w4vOH5+yBPRJXmlsmUhzWYeo/qdxFvma\n90bo//crzicmIl3bpphiJcbqSExThyKC/LGJaQ7AEQKBgQD7KsYOE4aTp2BMZ7tK\nHp8PJYgo2B8+wdWH5Yb5GD3Jy/ovxhQtGXPrhWOTeyOSF220AWbgQnv+5ONqUP2N\nC33yiemp9yrUO8XX0V5jnYA2wTzMpysWJ8UBQqhYdAsHzOTzCqMQFgfFF085xJcO\nRnNdJfe2grQWShfLtIj0Gvzt0QKBgQDSV7XNWHDQcptT2BGwbAvHJeMj49WkRn6e\nOFwDqE9ZyMPBRk0kscPkHVjZG+QEe5EIz4/zPjt1NNJwUL4Rj2d/16KDyN0R3M59\n7iZ4yvApaqutTrwULpiA1aRTxqmp+luYraaxMZ5KkfbmtIllam5b6CPF8TxLdHUh\n9cebfiEFnwKBgF+P47EhXre5HBuV8B2ATxZtOkQIDsNK7pp5CwSlY4Tu9e7NV4nd\nQEyhAMTxOhRwk43EZsb2pMTTg29FB2Ntturb7Cp93y7G2zyE7XvLRigPF7np9KvG\nT99t5C1bYYMDQyzxpB8Psr8bYkphcPO+fFA5jOlFC43bfPhFZUIzLn6xAoGAHQvT\npSmjWoWZAXkC6FPjRHrs5NXfeLHrZjnuKushGgrpTVVB7eFGZcfPrxt031GY85iG\nDlb3qvXCYZQkyxP8fODwJjakoITXVvh+A4wyoeWDE4md20Ob956I9LCoWTqjT3Ab\nZritXSrO54jiuEh8OODTn8/yPZE1Y50nFUfTk40CgYEA93Ly3TXKAMLoCZ8TPOhD\nG6OcxTH1cE5epUtG8aj22wnco6lEnzXk5YH7u3zmtjOfRD1XJQxHco6Ah8v5HdOv\nGp98qO3Hyrk6mWuMG2LwrUvXQr/QZFc4pK/PQZAc5r2CwKioRs8jPEMW1w1KjwIz\nYbNm5GO55ZDUWdKsx+yKd4w=\n-----END PRIVATE KEY-----\n`;
+  
+      const clientEmail = 'firebase-adminsdk-fbsvc@influsway-6ad7f.iam.gserviceaccount.com';
+      const projectId = 'influsway-6ad7f';  // Replace with your Firebase project ID
+  
+      // Define JWT header and payload
+      const header = {
+        alg: 'RS256',
+        typ: 'JWT',
+      };
+  
+      const payload = {
+        iss: clientEmail,
+        scope: 'https://www.googleapis.com/auth/firebase.messaging',
+        aud: 'https://oauth2.googleapis.com/token',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,  // Expiry time (1 hour)
+      };
+  
+      // Create JWT (JSON Web Token)
+      const jwt = createJWT(header, payload, privateKey);
+  
+      // Make the HTTP request to get the access token
+      const options = {
+        hostname: 'oauth2.googleapis.com',
+        path: '/token',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      };
+  
+      const data = querystring.stringify({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt,
+      });
+  
+      const req = https.request(options, (res) => {
+        let responseData = '';
+  
+        res.on('data', (chunk) => {
+          responseData += chunk;
+        });
+  
+        res.on('end', () => {
+          const responseJson = JSON.parse(responseData);
+          if (responseJson.access_token) {
+            resolve(responseJson.access_token);
+          } else {
+            reject(new Error('Error getting access token: ' + JSON.stringify(responseJson)));
+          }
+        });
+      });
+  
+      req.on('error', (error) => {
+        reject(error);
+      });
+  
+      req.write(data);
+      req.end();
+    });
+  }
+  
+  // Function to create JWT (you can implement this function using crypto in Node.js)
+  function createJWT(header, payload, privateKey) {
+    const base64UrlHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
+    const base64UrlPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const signature = crypto.createSign('RSA-SHA256')
+      .update(base64UrlHeader + '.' + base64UrlPayload)
+      .sign(privateKey, 'base64');
+  
+    const base64UrlSignature = signature.toString('base64url');
+    return base64UrlHeader + '.' + base64UrlPayload + '.' + base64UrlSignature;
+  }
+  
+  // Function to send the notification to the FCM token
+  function sendNotification(fcmToken, title, body) {
+    getAccessToken()
+      .then((accessToken) => {
+        const notificationPayload = JSON.stringify({
+          message: {
+            token: fcmToken,
+            notification: {
+              title: title,
+              body: body,
+            },
+          },
+        });
+  
+        const options = {
+          hostname: 'fcm.googleapis.com',
+          path: '/v1/projects/influsway-6ad7f/messages:send',
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'application/json',
+          },
+        };
+  
+        const req = https.request(options, (res) => {
+          let responseData = '';
+  
+          res.on('data', (chunk) => {
+            responseData += chunk;
+          });
+  
+          res.on('end', () => {
+            console.log('FCM response:', responseData);
+          });
+        });
+  
+        req.on('error', (error) => {
+          console.error('Error sending notification:', error);
+        });
+  
+        req.write(notificationPayload);
+        req.end();
+      })
+      .catch((error) => {
+        console.error('Error getting access token:', error);
+      });
+  }
+    const getFcmToken = (userId) => {
+        console.log(`Fetching FCM token for userId: ${userId}`); // Log when function is called
+        return new Promise((resolve, reject) => {
+            console.log(`Running query to fetch token for userId: ${userId}`); // Log before the query
+            query(`SELECT token FROM device_tokens WHERE user_id = ${userId}`, (err, result) => {
+                if (err) {
+                    console.error(`Error occurred while fetching FCM token for userId ${userId}: ${err.message}`); // Log error
+                    return reject(err);
+                }
+                if (result.length > 0) {
+                    console.log(`FCM token found for userId ${userId}: ${result[0].token}`); // Log if token is found
+                    resolve(result[0].token); // Assuming the FCM token is stored under 'token' field
+                } else {
+                    console.log(`No FCM token found for userId: ${userId}`); // Log if no token is found
+                    resolve(null); // No FCM token found for this user
+                }
+            });
+        });
+    };
 app.post("/chat-app/get-chat", async (req, res) => {
     try {
         const token = req.headers.authorization;
