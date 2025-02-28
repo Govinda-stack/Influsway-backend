@@ -583,43 +583,135 @@ app.get('/uploads/:originalName', async (req, res) => {
     //     }
     // });
 
-      app.post("/chat-app/get-chat", async (req, res) => {
-        try {
-            const token = req.headers.authorization;
-            if (token === "xxxx"){
-                var [user1, user2] = [ req.body.user1, req.body.user2]
-            }else{
-                const { data } = await functions.getAuth(token)//authorize the user
-                var [user1, user2] = [ data.data.id, req.body.user2]
-            }
-            if (!user1 || !user2){
-                return res.status(400).json("bad request please send user1 and user2")
-            }
-            //get the chat info 
-            query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2  FROM messages INNER JOIN chats on chats.id = messages.chat_id WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1} ))  Order By messages.date`, async (err, result) => {
-                if (err) return res.status(500).json(err.message);
-                if( result.length ){//if there is a chat
-                    if (user1 == result[0].user1){//if user 1 asked for the chat 
-                        result[0] = { userNumber: 1, ...result[0] }
-                    }else{//if user 2 asked for the chat
-                        result[0] = { userNumber: 2, ...result[0] }
-                    }
-                    return res.json(result);
-                }else{//if there is no chat yet
-                    //create chat in the database
-                    let created_at = moment().utc().format('YYYY-MM-DD HH:mm')
-                    const chat = await query(`insert into chats (user1, user2, last_message, created_at, updated_at) Values (${user1}, ${user2}, ' Chat Created','${created_at}', '${created_at}')`)
-                    const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 0Chat Created")`)
-                    //user1 is the one who started the chat and {userNumber: int} frontend must add it to 'socket auth handshake' and push it at the beginning of each message 
-                    return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 0Chat Just Created", date: created_at }])
-                }
-            })
-        } catch (error) {
-            return res.json(error.message)
-        }
-    })
+//       app.post("/chat-app/get-chat", async (req, res) => {
+//         try {
+//             const token = req.headers.authorization;
+//             if (token === "xxxx"){
+//                 var [user1, user2] = [ req.body.user1, req.body.user2]
+//             }else{
+//                 const { data } = await functions.getAuth(token)//authorize the user
+//                 var [user1, user2] = [ data.data.id, req.body.user2]
+//             }
+//             if (!user1 || !user2){
+//                 return res.status(400).json("bad request please send user1 and user2")
+//             }
+//             //get the chat info 
+//             query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2  FROM messages INNER JOIN chats on chats.id = messages.chat_id WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1} ))  Order By messages.date`, async (err, result) => {
+//                 if (err) return res.status(500).json(err.message);
+//                 if( result.length ){//if there is a chat
+//                     if (user1 == result[0].user1){//if user 1 asked for the chat 
+//                         result[0] = { userNumber: 1, ...result[0] }
+//                     }else{//if user 2 asked for the chat
+//                         result[0] = { userNumber: 2, ...result[0] }
+//                     }
+//                     return res.json(result);
+//                 }else{//if there is no chat yet
+//                     //create chat in the database
+//                     let created_at = moment().utc().format('YYYY-MM-DD HH:mm')
+//                     const chat = await query(`insert into chats (user1, user2, last_message, created_at, updated_at) Values (${user1}, ${user2}, ' Chat Created','${created_at}', '${created_at}')`)
+//                     const chatCreated = await query(`insert into messages (chat_id, message) Values (${chat.insertId}, " 0Chat Created")`)
+//                     //user1 is the one who started the chat and {userNumber: int} frontend must add it to 'socket auth handshake' and push it at the beginning of each message 
+//                     return res.json( [{ userNumber: 1, chat_id: chat.insertId, message: " 0Chat Just Created", date: created_at }])
+//                 }
+//             })
+//         } catch (error) {
+//             return res.json(error.message)
+//         }
+//     })
     
-};
+// };
+
+app.post("/chat-app/get-chat", async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        console.log(`Received authorization token: ${token}`); // Log received authorization token
+
+        const { data } = await functions.getAuth(token); // Authorize the user
+        const { user2 } = req.body;
+    
+        const user1 = data.data.id;
+        console.log(`user1: ${user1}, user2: ${user2}`); // Log user1 and user2
+    
+        if (!user1 || !user2) {
+            console.log("Bad request: Missing user1 or user2"); // Log missing users
+            return res.status(400).json("Bad request. Please send user1 and user2.");
+        }
+    
+        // Get the FCM token for user2 (the recipient)
+        const fcmToken2 = await getFcmToken(user2);
+        console.log(`FCM token for user2 (${user2}): ${fcmToken2}`); // Log the FCM token for user2
+    
+        // Get the chat info
+        console.log(`Querying for chat between user1 (${user1}) and user2 (${user2})`);
+        query(`SELECT messages.chat_id, messages.date, messages.message, messages.reply, chats.user1, chats.user2, 
+                      users1.photo AS user1_photo, users2.photo AS user2_photo
+               FROM messages
+               INNER JOIN chats ON chats.id = messages.chat_id
+               LEFT JOIN users AS users1 ON users1.id = chats.user1
+               LEFT JOIN users AS users2 ON users2.id = chats.user2
+               WHERE ((chats.user1 = ${user1} AND chats.user2 = ${user2}) OR (chats.user1 = ${user2} AND chats.user2 = ${user1})) 
+               ORDER BY messages.date`, async (err, result) => {
+            if (err) {
+                console.error(`Error occurred while querying for chat: ${err.message}`); // Log query error
+                return res.status(500).json(err.message);
+            }
+
+            if (result.length) {
+                console.log("Chat found between user1 and user2"); // Log if chat exists
+                // If there is a chat, process the result
+                if (user1 == result[0].user1) {
+                    result[0] = { userNumber: 1, ...result[0] };
+                } else {
+                    result[0] = { userNumber: 2, ...result[0] };
+                }
+                
+                // Include user photos in the response
+                result[0].user1_photo = result[0].user1_photo || null;
+                result[0].user2_photo = result[0].user2_photo || null;
+
+                // If there's an FCM token for user2, send a notification
+                if (fcmToken2) {
+                    console.log("Sending notification to user2"); // Log notification sending
+                    sendNotification(fcmToken2, "New Message", `${data.data.user_name} has sent you a message`);
+                }
+
+                return res.json(result);
+            } else {
+                console.log("No chat found, creating a new one"); // Log if no chat exists
+                // If there is no chat yet, create one
+                let created_at = moment().utc().format('YYYY-MM-DD HH:mm');
+                console.log(`Creating new chat at ${created_at}`); // Log new chat creation time
+                const chat = await query(`INSERT INTO chats (user1, user2, last_message, created_at, updated_at) 
+                                          VALUES (${user1}, ${user2}, 'Chat Created', '${created_at}', '${created_at}')`);
+                const chatCreated = await query(`INSERT INTO messages (chat_id, message) 
+                                                VALUES (${chat.insertId}, "Chat Just Created")`);
+
+                // Send a notification to user2 when the chat is created
+                if (fcmToken2) {
+                    console.log("Sending chat created notification to user2"); // Log notification sending for chat creation
+                    sendNotification(fcmToken2, "Chat Created", `${data.data.user_name} has started a chat with you`);
+                }
+
+                // Include default user photos (in case they don't exist yet, fallback to null)
+                const user1Photo = await query(`SELECT photo FROM users WHERE id = ${user1}`);
+                const user2Photo = await query(`SELECT photo FROM users WHERE id = ${user2}`);
+
+                return res.json([{
+                    userNumber: 1,
+                    chat_id: chat.insertId,
+                    message: "Chat Just Created",
+                    date: created_at,
+                    user1_photo: user1Photo[0]?.photo || null,
+                    user2_photo: user2Photo[0]?.photo || null
+                }]);
+            }
+        });
+    } catch (error) {
+        console.error(`Error in /chat-app/get-chat: ${error.message}`); // Log errors in the main try block
+        return res.status(500).json(error.message);
+    }
+});
+
 
 
 
