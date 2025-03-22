@@ -622,7 +622,7 @@ app.get('/uploads/:originalName', async (req, res) => {
 // };
 
 
-  -----------------------------------28 feb code------------------------
+  // -----------------------------------28 feb code------------------------
 app.post("/chat-app/get-chat", async (req, res) => {
     try {
         const token = req.headers.authorization;
